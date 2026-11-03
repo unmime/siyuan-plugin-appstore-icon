@@ -1,7 +1,7 @@
 {
   "name": "siyuan-plugin-appstore-icon",
-  "author": "wazakid",
-  "url": "https://github.com/wazakid/siyuan-plugin-appstore-icon",
+  "author": "unmime",
+  "url": "https://github.com/unmime/siyuan-plugin-appstore-icon",
   "version": "0.2.0",
   "minAppVersion": "3.5.0",
   "backends": [
