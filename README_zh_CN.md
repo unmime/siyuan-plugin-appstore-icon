@@ -1,4 +1,8 @@
+![App Store 图标](showcase.jpg)
+
 # App Store 图标
+
+[English](README.md) | **中文**
 
 在思源笔记里搜索 App Store 应用图标，一键插入正文或设为文档图标。
 

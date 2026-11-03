@@ -1,4 +1,8 @@
+![App Store Icon](showcase.jpg)
+
 # App Store Icon
+
+**English** | [中文](README_zh_CN.md)
 
 Search app icons from the App Store, then insert them into a document or apply them as document icons in SiYuan.
 
