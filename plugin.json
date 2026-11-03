@@ -1,0 +1,42 @@
+{
+  "name": "siyuan-plugin-appstore-icon",
+  "author": "wazakid",
+  "url": "https://github.com/wazakid/siyuan-plugin-appstore-icon",
+  "version": "0.2.0",
+  "minAppVersion": "3.5.0",
+  "backends": [
+    "all"
+  ],
+  "frontends": [
+    "desktop",
+    "desktop-window",
+    "browser-desktop",
+    "mobile",
+    "browser-mobile"
+  ],
+  "disabledInPublish": true,
+  "displayName": {
+    "default": "App Store Icon",
+    "zh_CN": "App Store 图标",
+    "zh-CN": "App Store 图标"
+  },
+  "description": {
+    "default": "Search app icons from the App Store and apply them as document icons in SiYuan",
+    "zh_CN": "搜索 App Store 应用图标，一键保存并设为思源文档图标",
+    "zh-CN": "搜索 App Store 应用图标，一键保存并设为思源文档图标"
+  },
+  "readme": {
+    "default": "README.md",
+    "zh_CN": "README_zh_CN.md",
+    "zh-CN": "README_zh_CN.md"
+  },
+  "icon": "icon.png",
+  "preview": "preview.png",
+  "keywords": [
+    "图标",
+    "icon",
+    "app store",
+    "应用图标",
+    "emoji"
+  ]
+}
