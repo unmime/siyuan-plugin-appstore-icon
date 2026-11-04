@@ -1,10 +1,29 @@
+/* App Store 图标 —— 视觉语言与 siyuan-plugin-dashboard-icons 统一
+ *
+ * 统一点：
+ *   - 卡片：surface 背景 + 1px 边框 + 10px 圆角，hover 变主色边框并上浮 1px
+ *   - 网格：96px 最小列宽、8px 间距
+ *   - 文案：11.5px 的次级文字色
+ *   - 内容区内边距 12px 16px（与 dashboard 一致）
+ */
+
+/* 内容区：去掉默认 overflow:auto，改由网格内部滚动 */
+.b3-dialog__content.asi {
+    padding: 12px 16px;
+    overflow: hidden;
+    display: flex;
+}
+
 .asi {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    height: min(480px, 64vh);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
     box-sizing: border-box;
 }
+
+/* ── 顶部工具条 ──────────────────────────────── */
 
 .asi-toolbar {
     display: flex;
@@ -13,84 +32,145 @@
     flex: none;
 }
 
+.asi-toolbar input {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    box-sizing: border-box;
+}
+
 .asi-country {
     width: 118px;
     flex: none;
+    height: 32px;
+    box-sizing: border-box;
 }
 
 .asi-search {
     flex: none;
+    height: 32px;
+    box-sizing: border-box;
 }
+
+/* ── 文案行 ──────────────────────────────────── */
 
 .asi-tip {
     flex: none;
-    font-size: 12px;
-    color: var(--b3-theme-on-surface-light);
+    font-size: 11.5px;
     line-height: 1.5;
+    color: var(--b3-theme-on-surface-light);
 }
+
+.asi-path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    font-size: 11.5px;
+    color: var(--b3-theme-on-surface-light);
+    cursor: pointer;
+    user-select: none;
+}
+
+.asi-path code {
+    font-family: var(--b3-font-family-code);
+    color: var(--b3-theme-primary);
+    text-decoration: underline dotted;
+}
+
+.asi-path:hover code {
+    text-decoration: underline;
+}
+
+/* ── 最近使用 ────────────────────────────────── */
 
 .asi-recent {
     flex: none;
 }
 
 .asi-recent-title {
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--b3-theme-on-surface-light);
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .asi-recent-list {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     overflow-x: auto;
     padding-bottom: 4px;
+    scrollbar-width: thin;
+}
+
+.asi-recent-list::-webkit-scrollbar {
+    height: 4px;
 }
 
 .asi-recent-item {
     flex: none;
-    width: 74px;
-    padding: 6px 4px;
+    width: 88px;
 }
+
+/* ── 状态行 ──────────────────────────────────── */
 
 .asi-status {
     flex: none;
-    min-height: 18px;
-    font-size: 12px;
-    color: var(--b3-theme-on-surface);
+    min-height: 16px;
+    font-size: 11.5px;
+    color: var(--b3-theme-on-surface-light);
 }
+
+/* ── 网格 ────────────────────────────────────── */
 
 .asi-grid {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
     gap: 8px;
     align-content: start;
-    padding: 4px;
+    padding: 2px 2px 8px;
 }
+
+.asi-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.asi-grid::-webkit-scrollbar-thumb {
+    background: var(--b3-scroll-color, rgba(128, 128, 128, 0.3));
+    border-radius: 3px;
+}
+
+/* ── 卡片 ────────────────────────────────────── */
 
 .asi-item {
     position: relative;
+    background: var(--b3-theme-surface);
+    border: 1px solid var(--b3-border-color);
+    border-radius: 10px;
+    padding: 12px 6px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 10px 6px;
-    border-radius: 8px;
-    border: 1px solid transparent;
+    gap: 7px;
     cursor: pointer;
-    transition: background 0.12s ease;
+    box-sizing: border-box;
+    transition: border-color 0.12s, transform 0.12s, background 0.12s;
 }
 
 .asi-item:hover {
-    background: var(--b3-theme-surface-lighter);
-    border-color: var(--b3-border-color);
+    border-color: var(--b3-theme-primary);
+    transform: translateY(-1px);
+}
+
+.asi-item:active {
+    transform: none;
 }
 
 .asi-item img {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
     object-fit: cover;
     background: var(--b3-theme-background);
@@ -98,28 +178,30 @@
 }
 
 .asi-name {
-    max-width: 84px;
+    max-width: 100%;
     font-size: 11px;
-    line-height: 1.35;
+    line-height: 1.25;
     text-align: center;
-    color: var(--b3-theme-on-surface);
+    color: var(--b3-theme-on-surface-light);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     pointer-events: none;
 }
 
+/* 已下载标记：贴卡片右上角 */
 .asi-item.is-downloaded::after {
     content: "";
     position: absolute;
-    top: 9px;
-    right: 12px;
-    width: 7px;
-    height: 7px;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--b3-theme-primary);
-    box-shadow: 0 0 0 2px var(--b3-theme-background);
 }
+
+/* ── 状态栏图标 ──────────────────────────────── */
 
 .asi-statusbar {
     display: flex;
@@ -143,23 +225,73 @@
     fill: currentColor;
 }
 
-.asi-path {
+/* ── 表情面板里的 App Store tab ──────────────── */
+
+.asi-emoji-tab {
+    flex: 0 0 auto;
+    margin: 0 2px;
+    color: var(--b3-theme-on-surface);
+    transition: color 0.12s;
+}
+
+.asi-emoji-tab:hover,
+.asi-emoji-tab.block__icon--active {
+    color: var(--b3-theme-primary);
+}
+
+.asi-emoji-tab svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+    fill: currentColor;
+}
+
+.asi-ep {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.asi-ep-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 2px;
+    align-content: start;
+    padding: 2px 6px 8px;
+}
+
+.asi-ep-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    flex: none;
-    font-size: 12px;
-    color: var(--b3-theme-on-surface-light);
+    justify-content: center;
+    height: 48px;
+    border-radius: 6px;
     cursor: pointer;
-    user-select: none;
+    transition: background 0.12s;
 }
 
-.asi-path code {
-    font-family: var(--b3-font-family-code);
-    color: var(--b3-theme-primary);
-    text-decoration: underline dotted;
+.asi-ep-item:hover {
+    background: var(--b3-list-hover);
 }
 
-.asi-path:hover code {
-    text-decoration: underline;
+.asi-ep-item img {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+}
+
+.asi-ep-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--b3-theme-on-surface-light);
 }

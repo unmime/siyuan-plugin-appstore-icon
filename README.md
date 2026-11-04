@@ -29,6 +29,8 @@ The default hotkey is `Alt + Shift + A`. To change it, go to **Settings → Keym
 
 ## Usage
 
+Also available as a tab inside SiYuan's emoji panel — open the emoji picker from the document icon and click its header icon to search there.
+
 1. Click the magnifier in the top bar, or press `Alt + Shift + A`
 2. Type an app name (e.g. `WeChat`, `Spotify`) and press Enter
 3. Left click to insert, right click for more

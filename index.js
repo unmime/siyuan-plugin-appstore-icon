@@ -64,6 +64,7 @@ class AppStoreIconPlugin extends Plugin {
             },
         });
 
+        this.injectEmojiTab();
         this.syncInjections();
 
         try {
@@ -83,6 +84,10 @@ class AppStoreIconPlugin extends Plugin {
     }
 
     onunload() {
+        if (this.emojiTabObserver) {
+            this.emojiTabObserver.disconnect();
+            this.emojiTabObserver = null;
+        }
         this.closePanel();
         this.syncInjections(true);
     }
@@ -251,8 +256,8 @@ class AppStoreIconPlugin extends Plugin {
 
         this.dialog = new Dialog({
             title: this.i18n.pluginName,
-            width: "760px",
-            height: "620px",
+            width: "920px",
+            height: "680px",
             content: `<div class="b3-dialog__content asi">
     <div class="asi-toolbar">
         <input class="b3-text-field fn__flex-1 asi-input" placeholder="${this.i18n.searchPlaceholder}">
@@ -283,6 +288,8 @@ class AppStoreIconPlugin extends Plugin {
             if (input.value.trim()) this.search(input.value);
         });
         input.addEventListener("keydown", (e) => {
+            // 输入法组词时的回车是「确认候选词」，不能当成提交，否则会用半截文本去搜
+            if (e.isComposing || e.keyCode === 229) return;
             if (e.key === "Enter") {
                 e.preventDefault();
                 this.search(input.value);
@@ -328,6 +335,167 @@ class AppStoreIconPlugin extends Plugin {
         if (!this.dialog) return;
         const el = this.dialog.element.querySelector(".asi-status");
         if (el) el.textContent = text || "";
+    }
+
+    /**
+     * 把 App Store 图标做成表情面板里的一个 tab。
+     *
+     * 这个插件本身是「搜索 iTunes 再下载」，没有本地索引，
+     * 所以 tab 里只有搜索框：输入回车才查，结果点一下就用。
+     */
+    injectEmojiTab() {
+        const inject = () => {
+            document.querySelectorAll(".emojis__tabheader").forEach((header) => {
+                if (header.querySelector(".asi-emoji-tab")) return;
+                const dialog = header.closest(".b3-dialog");
+                const body = dialog && dialog.querySelector(".emojis__tabbody");
+                const linkTab = header.querySelector('[data-type="tab-link"]');
+                if (!body || !linkTab) return;
+
+                const tab = document.createElement("div");
+                tab.className = "asi-emoji-tab ariaLabel block__icon block__icon--show";
+                tab.setAttribute("data-type", "tab-asi");
+                tab.setAttribute("aria-label", this.i18n.pluginName);
+                tab.innerHTML = '<svg><use xlink:href="#iconAppstoreMark"></use></svg>';
+
+                const pane = document.createElement("div");
+                pane.className = "fn__none asi-ep";
+                pane.setAttribute("data-type", "tab-asi");
+                pane.innerHTML = `
+                    <div class="fn__hr"></div>
+                    <div class="fn__flex">
+                        <span class="fn__space"></span>
+                        <label class="b3-form__icon fn__flex-1" style="overflow:initial;">
+                            <svg class="b3-form__icon-icon"><use xlink:href="#iconSearch"></use></svg>
+                            <input spellcheck="false" class="b3-form__icon-input b3-text-field fn__block asi-ep-search" placeholder="${this.esc(this.i18n.searchPlaceholder)}">
+                        </label>
+                        <span class="fn__space"></span>
+                    </div>
+                    <div class="fn__hr"></div>
+                    <div class="asi-ep-grid"><div class="asi-ep-empty">${this.esc(this.isZh ? "输入应用名后按回车搜索，点图标即可使用" : "Type an app name and press Enter, then click an icon")}</div></div>
+                `;
+
+                const input = pane.querySelector(".asi-ep-search");
+                const grid = pane.querySelector(".asi-ep-grid");
+                let results = [];
+                let loading = false;
+
+                const isIconMode = () => {
+                    const rm = dialog.querySelector('[data-action="remove"]');
+                    return !!rm && !rm.classList.contains("fn__none");
+                };
+
+                const render = () => {
+                    if (!results.length) return;
+                    grid.innerHTML = results
+                        .map(
+                            (app, i) => `<div class="asi-ep-item" data-i="${i}" title="${this.esc(app.trackName)}">
+                                <img src="${this.esc(app.artworkUrl100 || app.artworkUrl60 || "")}" loading="lazy" alt="">
+                            </div>`
+                        )
+                        .join("");
+                };
+
+                const doSearch = async () => {
+                    const term = input.value.trim();
+                    if (!term || loading) return;
+                    loading = true;
+                    grid.innerHTML = `<div class="asi-ep-empty">${this.esc(this.i18n.searching)}</div>`;
+                    try {
+                        const params = new URLSearchParams({
+                            term,
+                            country: this.conf.country,
+                            entity: "software",
+                            limit: String(SEARCH_LIMIT),
+                        });
+                        const resp = await fetch(`${ITUNES_API}?${params.toString()}`);
+                        if (!resp.ok) throw new Error("HTTP " + resp.status);
+                        const data = await resp.json();
+                        results = data.results || [];
+                        if (!results.length) {
+                            grid.innerHTML = `<div class="asi-ep-empty">${this.esc(this.i18n.noResult)}</div>`;
+                        } else {
+                            render();
+                        }
+                    } catch (err) {
+                        results = [];
+                        grid.innerHTML = `<div class="asi-ep-empty">${this.esc(this.i18n.searchFailed)}</div>`;
+                    } finally {
+                        loading = false;
+                    }
+                };
+
+                grid.addEventListener("click", async (e) => {
+                    const el = e.target.closest(".asi-ep-item");
+                    if (!el) return;
+                    const idx = Number(el.getAttribute("data-i"));
+                    const app = results[idx];
+                    if (!app) return;
+                    // pick() 读的是 this.results，这里同步过去
+                    this.results = results;
+                    const mode = isIconMode() ? "icon" : "insert";
+                    dialog.remove();
+                    await this.pick(idx, mode);
+                });
+
+                // 中文输入法：组词时的回车是确认候选词
+                input.addEventListener("compositionstart", () => {
+                    this._epComposing = true;
+                });
+                input.addEventListener("compositionend", () => {
+                    this._epComposing = false;
+                });
+                input.addEventListener("keydown", (e) => {
+                    if (e.isComposing || e.keyCode === 229) return;
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        doSearch();
+                    }
+                });
+
+                const activate = () => {
+                    header.querySelectorAll('[data-type^="tab-"]').forEach((t) => {
+                        t.classList.toggle("block__icon--active", t === tab);
+                    });
+                    [...body.children].forEach((c) => c.classList.add("fn__none"));
+                    pane.classList.remove("fn__none");
+                    setTimeout(() => input.focus(), 30);
+                };
+
+                tab.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    activate();
+                });
+                header.addEventListener(
+                    "click",
+                    (e) => {
+                        const t = e.target.closest('[data-type^="tab-"]');
+                        if (t && t !== tab) tab.classList.remove("block__icon--active");
+                    },
+                    true
+                );
+
+                const space = linkTab.nextElementSibling;
+                if (space && space.classList.contains("fn__space")) {
+                    space.insertAdjacentElement("afterend", tab);
+                } else {
+                    linkTab.insertAdjacentElement("afterend", tab);
+                }
+                body.appendChild(pane);
+            });
+        };
+
+        inject();
+        this.emojiTabObserver = new MutationObserver(() => inject());
+        this.emojiTabObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
+    get isZh() {
+        const lang =
+            (window.siyuan && window.siyuan.config && window.siyuan.config.appearance
+                && window.siyuan.config.appearance.lang) || "zh_CN";
+        return String(lang).toLowerCase().indexOf("zh") === 0;
     }
 
     esc(value) {
