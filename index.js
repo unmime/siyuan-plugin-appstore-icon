@@ -762,9 +762,7 @@ class AppStoreIconPlugin extends Plugin {
     }
 
     currentDocId() {
-        const el = document.querySelector(".layout__wnd--active .protyle[data-doc-id]")
-            || document.querySelector(".protyle[data-doc-id]");
-        return el ? el.getAttribute("data-doc-id") : "";
+        return this.activeDocId();
     }
 
     async fetchRootId(blockId) {
@@ -835,11 +833,27 @@ class AppStoreIconPlugin extends Plugin {
         return await this.insertViaApi(iconValue);
     }
 
+    /**
+     * 当前文档 id。
+     *
+     * 别用 `.protyle[data-doc-id]` 取——思源 3.8.9 的 .protyle 上没有这个属性
+     * （data-id 是 protyle 实例 id，data-node-id 才是文档 id），
+     * 这么写过永远返回 null，设文档图标会失败。走官方 getAllEditor()。
+     */
     activeDocId() {
-        const active = document.querySelector(".layout__wnd--active .protyle[data-doc-id]");
-        if (active) return active.getAttribute("data-doc-id");
-        const any = document.querySelector(".protyle[data-doc-id]");
-        return any ? any.getAttribute("data-doc-id") : null;
+        const list = typeof getAllEditor === "function" ? getAllEditor() : [];
+        const editors = list.filter((e) => e && e.protyle && e.protyle.block);
+        if (editors.length) {
+            const visible = (e) => !e.protyle.element.classList.contains("fn__none");
+            const focused = document.activeElement
+                && editors.find((e) => visible(e) && e.protyle.element.contains(document.activeElement));
+            if (focused) return focused.protyle.block.rootID || "";
+            const vis = editors.find(visible);
+            return (vis || editors[0]).protyle.block.rootID || "";
+        }
+        const el = document.querySelector(".layout__wnd--active .protyle[data-node-id]")
+            || document.querySelector(".protyle[data-node-id]");
+        return el ? el.getAttribute("data-node-id") : null;
     }
 
     async applyToActiveDoc(iconValue) {
